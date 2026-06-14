@@ -73,6 +73,12 @@ function App() {
       .finally(() => setLoading(false))
   }, [backgroundSync])
 
+  // Silent 10-minute auto-refresh
+  useEffect(() => {
+    const id = setInterval(() => backgroundSync(false), 10 * 60 * 1000)
+    return () => clearInterval(id)
+  }, [backgroundSync])
+
   const handleRefresh = useCallback(() => {
     if (!syncing) backgroundSync(true)
   }, [syncing, backgroundSync])
