@@ -197,6 +197,7 @@ function App() {
     loading, syncing, error,
     onRefresh: handleRefresh,
     onRead: handleRead,
+    onLogoClick: handleBack,
     theme, onThemeToggle: toggleTheme,
     activePost,
   }

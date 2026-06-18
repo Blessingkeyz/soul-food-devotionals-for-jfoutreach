@@ -35,12 +35,15 @@ export default function PostReader({ post, onBack, onShare, theme, onThemeToggle
     <div className="page reader-page">
 
       <header className="page-header">
-        {sidebarMode
-          ? <div className="header-spacer" />
-          : <button className="icon-btn" onClick={onBack} title="Back to list"><ArrowLeft size={18} /></button>
-        }
-        <div className="header-brand" style={{ flex: 1, justifyContent: 'center' }}>
-          <img src="/logo.png" alt="Soul Food" className="brand-logo" />
+        <div className="header-brand">
+          {!sidebarMode && (
+            <button className="icon-btn" onClick={onBack} title="Back to list"><ArrowLeft size={18} /></button>
+          )}
+          <img src="/logo.png" alt="Soul Food" className="brand-logo brand-logo-mobile" />
+          <div className="brand-text">
+            <div className="brand-org">JESUS FAMILY OUTREACH</div>
+            <div className="brand-title">Soul Food Devotionals</div>
+          </div>
         </div>
         <div className="header-actions">
           <button

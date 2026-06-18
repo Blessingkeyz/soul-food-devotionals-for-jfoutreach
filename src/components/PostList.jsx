@@ -51,7 +51,7 @@ function SkeletonSidebarItem() {
 export default function PostList({
   posts, totalCount, search, setSearch,
   loading, syncing, error, onRefresh,
-  onRead, theme, onThemeToggle,
+  onRead, onLogoClick, theme, onThemeToggle,
   activePost, sidebarMode = false, gridOnlyMode = false,
 }) {
   const [page, setPage] = useState(1)
@@ -109,10 +109,13 @@ export default function PostList({
 
       <header className="page-header">
         {sidebarMode ? (
-          <img src="/logo.png" alt="Soul Food" className="brand-logo" />
+          <button className="logo-btn" onClick={onLogoClick} title="Home">
+            <img src="/logo.png" alt="Soul Food" className="brand-logo" />
+          </button>
         ) : (
           <>
             <div className="header-brand">
+              <img src="/logo.png" alt="Soul Food" className="brand-logo brand-logo-mobile" />
               <div className="brand-text">
                 <div className="brand-org">JESUS FAMILY OUTREACH</div>
                 <div className="brand-title">Soul Food Devotionals</div>

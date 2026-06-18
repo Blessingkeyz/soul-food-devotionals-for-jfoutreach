@@ -37,7 +37,7 @@
   --shadow-card:   0 2px 12px rgba(0,0,0,0.07);
   --shadow-hover:  0 12px 40px rgba(0,0,0,0.14);
   --header-bg:     rgba(244,244,248,0.92);
-  --hero-fade:     #f4f4f8;
+  --hero-fade:     rgba(0, 0, 0, 0.35);
 }
 
 :root {
@@ -157,8 +157,34 @@ body {
   filter: drop-shadow(0 0 8px var(--accent-glow));
 }
 
+.logo-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  transition: opacity 0.15s;
+}
+.logo-btn:hover { opacity: 0.75; }
+
 .brand-logo-sm {
   height: 26px;
+}
+
+/* Logo in main header: visible on mobile/tablet, hidden on desktop (sidebar has it) */
+.brand-logo-mobile {
+  display: block;
+}
+@media (min-width: 1024px) {
+  .brand-logo-mobile { display: none; }
+}
+
+/* Smaller brand text on mobile */
+@media (max-width: 600px) {
+  .brand-org  { font-size: 0.72rem; letter-spacing: 0.07em; }
+  .brand-title { font-size: 0.6rem; }
 }
 
 .brand-text { min-width: 0; }
