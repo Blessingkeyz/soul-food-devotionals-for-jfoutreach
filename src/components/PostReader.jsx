@@ -1,4 +1,5 @@
-import { ArrowLeft, Calendar, Clock, Sun, Moon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowLeft, Calendar, Clock, Sun, Moon, Share2, Check } from 'lucide-react'
 import { formatDate } from '../utils/formatDate'
 
 function readingTime(html) {
@@ -6,22 +7,53 @@ function readingTime(html) {
   return Math.max(1, Math.round(words / 200))
 }
 
-export default function PostReader({ post, onBack, theme, onThemeToggle }) {
+function highlightAuthor(html) {
+  return html.replace(
+    /APOSTLE\s+SYLVESTER\s+ONYEMALECHI/gi,
+    '<strong class="author-name">$&</strong>'
+  )
+}
+
+export default function PostReader({ post, onBack, onShare, theme, onThemeToggle, sidebarMode = false }) {
+  const [shared, setShared] = useState(false)
   const mins = readingTime(post.content)
+
+  // Scroll to top when post changes
+  useEffect(() => {
+    const mainEl = document.querySelector('.app-main')
+    if (mainEl) mainEl.scrollTop = 0
+    else window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [post.id])
+
+  const handleShare = async () => {
+    await onShare(post)
+    setShared(true)
+    setTimeout(() => setShared(false), 2000)
+  }
 
   return (
     <div className="page reader-page">
 
       <header className="page-header">
-        <button className="icon-btn" onClick={onBack} title="Back to list">
-          <ArrowLeft size={18} />
-        </button>
+        {sidebarMode
+          ? <div className="header-spacer" />
+          : <button className="icon-btn" onClick={onBack} title="Back to list"><ArrowLeft size={18} /></button>
+        }
         <div className="header-brand" style={{ flex: 1, justifyContent: 'center' }}>
           <img src="/logo.png" alt="Soul Food" className="brand-logo" />
         </div>
-        <button className="icon-btn" onClick={onThemeToggle} title="Toggle theme">
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+        <div className="header-actions">
+          <button
+            className={`icon-btn${shared ? ' icon-btn-success' : ''}`}
+            onClick={handleShare}
+            title="Share this devotional"
+          >
+            {shared ? <Check size={16} /> : <Share2 size={16} />}
+          </button>
+          <button className="icon-btn" onClick={onThemeToggle} title="Toggle theme">
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
       </header>
 
       <div className="reader-body">
@@ -59,7 +91,7 @@ export default function PostReader({ post, onBack, theme, onThemeToggle }) {
 
           <div
             className="reader-prose"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: highlightAuthor(post.content) }}
           />
 
         </div>

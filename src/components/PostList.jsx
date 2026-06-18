@@ -12,7 +12,6 @@ function readingTime(html) {
   return Math.max(1, Math.round(words / 200))
 }
 
-// Wraps the matched portion in a <mark>
 function Highlight({ text, query }) {
   const idx = text.toLowerCase().indexOf(query.toLowerCase())
   if (idx === -1) return text
@@ -39,16 +38,35 @@ function SkeletonCard() {
   )
 }
 
+function SkeletonSidebarItem() {
+  return (
+    <div className="sidebar-item skeleton-card" style={{ pointerEvents: 'none' }}>
+      <div className="skeleton-line" style={{ width: '88%', height: 13, marginBottom: 6 }} />
+      <div className="skeleton-line" style={{ width: '55%', height: 13, marginBottom: 5 }} />
+      <div className="skeleton-line" style={{ width: '40%', height: 10 }} />
+    </div>
+  )
+}
+
 export default function PostList({
   posts, totalCount, search, setSearch,
   loading, syncing, error, onRefresh,
   onRead, theme, onThemeToggle,
+  activePost, sidebarMode = false, gridOnlyMode = false,
 }) {
   const [page, setPage] = useState(1)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const searchRef = useRef(null)
+  const searchRef  = useRef(null)
+  const activeRef  = useRef(null)
 
   useEffect(() => { setPage(1) }, [search])
+
+  // Scroll active sidebar item into view
+  useEffect(() => {
+    if (sidebarMode && activeRef.current) {
+      activeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [activePost?.id, sidebarMode])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -61,8 +79,7 @@ export default function PostList({
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const showDropdown = dropdownOpen && search.trim().length > 0
-  // posts is already filtered by search (from App.jsx), so we just slice
+  const showDropdown   = dropdownOpen && search.trim().length > 0
   const dropdownResults = posts.slice(0, 8)
 
   const handleResultClick = (post) => {
@@ -88,94 +105,100 @@ export default function PostList({
   }
 
   return (
-    <div className="page">
+    <div className={`page${sidebarMode ? ' sidebar-page' : ''}${gridOnlyMode ? ' grid-only-page' : ''}`}>
 
       <header className="page-header">
-        <div className="header-brand">
+        {sidebarMode ? (
           <img src="/logo.png" alt="Soul Food" className="brand-logo" />
-          <div className="brand-text">
-            <div className="brand-title">Soul Food</div>
-            <div className="brand-sub">Daily Devotionals</div>
-          </div>
-        </div>
-        <div className="header-actions">
-          <button className="icon-btn" onClick={onRefresh} title="Refresh" disabled={loading || syncing}>
-            <RefreshCw size={16} className={syncing ? 'spin' : ''} />
-          </button>
-          <button className="icon-btn" onClick={onThemeToggle} title="Toggle theme">
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </div>
+        ) : (
+          <>
+            <div className="header-brand">
+              <div className="brand-text">
+                <div className="brand-org">JESUS FAMILY OUTREACH</div>
+                <div className="brand-title">Soul Food Devotionals</div>
+              </div>
+            </div>
+            <div className="header-actions">
+              <button className="icon-btn" onClick={onRefresh} title="Refresh" disabled={loading || syncing}>
+                <RefreshCw size={16} className={syncing ? 'spin' : ''} />
+              </button>
+              <button className="icon-btn" onClick={onThemeToggle} title="Toggle theme">
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+            </div>
+          </>
+        )}
       </header>
 
-      {/* ── Search with dropdown ── */}
-      <div className="search-section">
-        <div className="search-pill-wrap" ref={searchRef}>
-
-          <div className="search-pill">
-            <Search size={15} className="search-icon" />
-            <input
-              className="search-input"
-              placeholder="Search devotionals…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onFocus={() => setDropdownOpen(true)}
-              onKeyDown={e => e.key === 'Escape' && setDropdownOpen(false)}
-              autoComplete="off"
-            />
-            {search && (
-              <button
-                className="search-clear"
-                onMouseDown={() => { setSearch(''); setDropdownOpen(false) }}
-                title="Clear"
-              >✕</button>
-            )}
-          </div>
-
-          {showDropdown && (
-            <div className="search-dropdown">
-              {dropdownResults.length > 0 ? (
-                dropdownResults.map(post => (
-                  <button
-                    key={post.id}
-                    className="search-result-item"
-                    onMouseDown={() => handleResultClick(post)}
-                  >
-                    {post.image ? (
-                      <img
-                        src={post.image}
-                        alt=""
-                        className="search-result-thumb"
-                        onError={e => { e.currentTarget.style.display = 'none' }}
-                      />
-                    ) : (
-                      <div className="search-result-thumb search-result-thumb-empty">
-                        <BookOpen size={14} strokeWidth={1.5} />
-                      </div>
-                    )}
-                    <div className="search-result-info">
-                      <span className="search-result-title">
-                        <Highlight text={post.title} query={search} />
-                      </span>
-                      {post.datePublished && (
-                        <span className="search-result-date">
-                          {formatDate(post.datePublished)}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="search-no-results">
-                  <SearchX size={20} strokeWidth={1.5} />
-                  <span>No devotionals found for "<strong>{search}</strong>"</span>
-                </div>
+      {!gridOnlyMode && (
+        <div className="search-section">
+          <div className="search-pill-wrap" ref={searchRef}>
+            <div className="search-pill">
+              <Search size={15} className="search-icon" />
+              <input
+                className="search-input"
+                placeholder="Search devotionals…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onFocus={() => setDropdownOpen(true)}
+                onKeyDown={e => e.key === 'Escape' && setDropdownOpen(false)}
+                autoComplete="off"
+              />
+              {search && (
+                <button
+                  className="search-clear"
+                  onMouseDown={() => { setSearch(''); setDropdownOpen(false) }}
+                  title="Clear"
+                >✕</button>
               )}
             </div>
-          )}
 
+            {showDropdown && (
+              <div className="search-dropdown">
+                {dropdownResults.length > 0 ? (
+                  dropdownResults.map(post => (
+                    <button
+                      key={post.id}
+                      className="search-result-item"
+                      onMouseDown={() => handleResultClick(post)}
+                    >
+                      {!sidebarMode && (
+                        post.image ? (
+                          <img
+                            src={post.image}
+                            alt=""
+                            className="search-result-thumb"
+                            onError={e => { e.currentTarget.style.display = 'none' }}
+                          />
+                        ) : (
+                          <div className="search-result-thumb search-result-thumb-empty">
+                            <BookOpen size={14} strokeWidth={1.5} />
+                          </div>
+                        )
+                      )}
+                      <div className="search-result-info">
+                        <span className="search-result-title">
+                          <Highlight text={post.title} query={search} />
+                        </span>
+                        {post.datePublished && (
+                          <span className="search-result-date">
+                            {formatDate(post.datePublished)}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="search-no-results">
+                    <SearchX size={20} strokeWidth={1.5} />
+                    <span>No devotionals found for "<strong>{search}</strong>"</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Main content ── */}
       {error ? (
@@ -189,9 +212,15 @@ export default function PostList({
         </div>
 
       ) : loading ? (
-        <div className="card-grid">
-          {Array.from({ length: PER_PAGE }).map((_, i) => <SkeletonCard key={i} />)}
-        </div>
+        sidebarMode ? (
+          <div className="sidebar-list">
+            {Array.from({ length: 12 }).map((_, i) => <SkeletonSidebarItem key={i} />)}
+          </div>
+        ) : (
+          <div className="card-grid">
+            {Array.from({ length: PER_PAGE }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        )
 
       ) : posts.length === 0 && search ? (
         <div className="empty-state">
@@ -205,6 +234,43 @@ export default function PostList({
           <BookOpen size={48} strokeWidth={1} />
           <p>No devotionals yet</p>
         </div>
+
+      ) : sidebarMode ? (
+        <>
+          <div className="sidebar-list">
+            {pagePosts.map(post => {
+              const isActive = activePost?.id === post.id
+              return (
+                <button
+                  key={post.id}
+                  ref={isActive ? activeRef : null}
+                  className={`sidebar-item${isActive ? ' active' : ''}`}
+                  onClick={() => onRead(post)}
+                >
+                  <span className="sidebar-item-title">{post.title}</span>
+                  {post.datePublished && (
+                    <span className="sidebar-item-date">
+                      <Calendar size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />
+                      {formatDate(post.datePublished)}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="pagination pagination-compact">
+              <button className="page-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}>
+                <ChevronLeft size={16} />
+              </button>
+              <span className="page-info">{safePage} / {totalPages}</span>
+              <button className="page-btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}>
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </>
 
       ) : (
         <>
